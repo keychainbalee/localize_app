@@ -44,6 +44,9 @@ class ApiProvider {
     String role = 'customer',
     String? imagePath,
     List<int>? imageBytes,
+    String? addressText,
+    double? latitude,
+    double? longitude,
   }) async {
     if ((imagePath != null && imagePath.isNotEmpty) || (imageBytes != null && imageBytes.isNotEmpty)) {
       final request = http.MultipartRequest('POST', Uri.parse(ApiEndpoints.register));
@@ -52,6 +55,9 @@ class ApiProvider {
       request.fields['phoneNumber'] = phoneNumber;
       request.fields['password'] = password;
       request.fields['role'] = role;
+      if (addressText != null) request.fields['addressText'] = addressText;
+      if (latitude != null) request.fields['latitude'] = latitude.toString();
+      if (longitude != null) request.fields['longitude'] = longitude.toString();
 
       if (imageBytes != null && imageBytes.isNotEmpty) {
         request.files.add(http.MultipartFile.fromBytes(
@@ -79,6 +85,9 @@ class ApiProvider {
           'phoneNumber': phoneNumber,
           'password': password,
           'role': role,
+          if (addressText != null) 'addressText': addressText,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
         }),
       );
       return jsonDecode(response.body);
@@ -165,6 +174,7 @@ class ApiProvider {
   Future<Map<String, dynamic>> createOrder({
     required int userId,
     required String shippingAddress,
+    String? addressNotes,
     required double latitude,
     required double longitude,
     required List<Map<String, dynamic>> items,
@@ -175,6 +185,7 @@ class ApiProvider {
       body: jsonEncode({
         'userId': userId,
         'shippingAddress': shippingAddress,
+        'addressNotes': addressNotes ?? '',
         'latitude': latitude,
         'longitude': longitude,
         'items': items,
@@ -207,6 +218,168 @@ class ApiProvider {
     final response = await http.get(
       Uri.parse(ApiEndpoints.storeSettings),
       headers: await _getHeaders(withToken: false),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // ===========================================================================
+  // 5. KERANJANG BELANJA (CART)
+  // ===========================================================================
+
+  // GET /api/cart
+  Future<List<dynamic>> getMyCart() async {
+    final response = await http.get(
+      Uri.parse('${ApiEndpoints.baseUrl}/cart'),
+      headers: await _getHeaders(withToken: true),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Gagal memuat keranjang belanja');
+    }
+  }
+
+  // POST /api/cart
+  Future<Map<String, dynamic>> addToCart({
+    required int productId,
+    required String size,
+    required int quantity,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiEndpoints.baseUrl}/cart'),
+      headers: await _getHeaders(withToken: true),
+      body: jsonEncode({
+        'productId': productId,
+        'size': size,
+        'quantity': quantity,
+      }),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // PUT /api/cart/:id
+  Future<Map<String, dynamic>> updateCartItem({
+    required int id,
+    required int quantity,
+  }) async {
+    final response = await http.put(
+      Uri.parse('${ApiEndpoints.baseUrl}/cart/$id'),
+      headers: await _getHeaders(withToken: true),
+      body: jsonEncode({
+        'quantity': quantity,
+      }),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // DELETE /api/cart/:id
+  Future<Map<String, dynamic>> removeCartItem(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiEndpoints.baseUrl}/cart/$id'),
+      headers: await _getHeaders(withToken: true),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // DELETE /api/cart
+  Future<Map<String, dynamic>> clearMyCart() async {
+    final response = await http.delete(
+      Uri.parse('${ApiEndpoints.baseUrl}/cart'),
+      headers: await _getHeaders(withToken: true),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // POST /api/orders/:id/payment-proof
+  Future<Map<String, dynamic>> uploadPaymentProof({
+    required int orderId,
+    required String imagePath,
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('${ApiEndpoints.baseUrl}/orders/$orderId/payment-proof'));
+    final headers = await _getHeaders(withToken: true);
+    request.headers.addAll(headers);
+
+    request.files.add(await http.MultipartFile.fromPath(
+      'imageFile',
+      imagePath,
+    ));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    return jsonDecode(response.body);
+  }
+
+  // POST /api/orders/:id/cancel → user membatalkan pesanannya sendiri
+  Future<Map<String, dynamic>> cancelOrder(int orderId) async {
+    final response = await http.post(
+      Uri.parse('${ApiEndpoints.baseUrl}/orders/$orderId/cancel'),
+      headers: await _getHeaders(withToken: true),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // GET /api/users/locations
+  Future<List<dynamic>> getMyLocations() async {
+    final response = await http.get(
+      Uri.parse(ApiEndpoints.userLocations),
+      headers: await _getHeaders(withToken: true),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Gagal memuat daftar lokasi');
+    }
+  }
+
+  // PUT /api/users/locations/:id
+  Future<Map<String, dynamic>> updateLocation({
+    required int id,
+    String? label,
+    required String addressText,
+    String? addressNotes,
+    required double latitude,
+    required double longitude,
+    int? isPrimary,
+  }) async {
+    final response = await http.put(
+      Uri.parse('${ApiEndpoints.userLocations}/$id'),
+      headers: await _getHeaders(withToken: true),
+      body: jsonEncode({
+        'label': label ?? 'Rumah',
+        'addressText': addressText,
+        'addressNotes': addressNotes ?? '',
+        'latitude': latitude,
+        'longitude': longitude,
+        'isPrimary': isPrimary ?? 1,
+      }),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // POST /api/users/locations
+  Future<Map<String, dynamic>> addLocation({
+    String? label,
+    required String addressText,
+    String? addressNotes,
+    required double latitude,
+    required double longitude,
+    int? isPrimary,
+  }) async {
+    final response = await http.post(
+      Uri.parse(ApiEndpoints.userLocations),
+      headers: await _getHeaders(withToken: true),
+      body: jsonEncode({
+        'label': label ?? 'Rumah',
+        'addressText': addressText,
+        'addressNotes': addressNotes ?? '',
+        'latitude': latitude,
+        'longitude': longitude,
+        'isPrimary': isPrimary ?? 1,
+      }),
     );
     return jsonDecode(response.body);
   }

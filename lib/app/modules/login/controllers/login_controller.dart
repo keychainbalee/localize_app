@@ -8,8 +8,8 @@ class LoginController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
 
   // Text Editing Controller untuk Form Login
-  final emailController = TextEditingController(text: 'budi@mail.com');
-  final passwordController = TextEditingController(text: 'password123');
+  final emailController = TextEditingController(text: '');
+  final passwordController = TextEditingController(text: '');
 
   // Reactive State Variables
   var isLoading = false.obs;

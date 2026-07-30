@@ -4,12 +4,14 @@ import '../controllers/register_controller.dart';
 import '../../../routes/app_pages.dart';
 
 class RegisterView extends GetView<RegisterController> {
+  static const Color brandYellow = Color(0xFFFFB800);
+  static const Color darkText = Color(0xFF333333);
+  static const Color brandGreen = Color(0xFF4CAF50);
+  static const Color brandRed = Color(0xFFE53935);
   const RegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color brandYellow = Color(0xFFFFB800);
-    const Color darkText = Color(0xFF333333);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -114,8 +116,9 @@ class RegisterView extends GetView<RegisterController> {
                   Obx(() => TextField(
                         controller: controller.passwordController,
                         obscureText: controller.isObscure.value,
+                        onChanged: (_) => controller.password.value = controller.passwordController.text,
                         decoration: InputDecoration(
-                          hintText: 'Password (minimal 6 karakter)',
+                          hintText: 'Password (min. 8 karakter)',
                           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                           prefixIcon: const Icon(Icons.lock_outline, color: Colors.black54),
                           suffixIcon: IconButton(
@@ -129,7 +132,43 @@ class RegisterView extends GetView<RegisterController> {
                           focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: brandYellow, width: 2)),
                         ),
                       )),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+
+                  // Password Requirement Checklist
+                  Obx(() {
+                    final pwd = controller.password.value;
+                    final hasMin = pwd.length >= 8;
+                    final hasUpper = pwd.contains(RegExp(r'[A-Z]'));
+                    final hasLower = pwd.contains(RegExp(r'[a-z]'));
+                    final hasDigit = pwd.contains(RegExp(r'[0-9]'));
+
+                    if (pwd.isEmpty) return const SizedBox.shrink();
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Ketentuan password:',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54),
+                          ),
+                          const SizedBox(height: 6),
+                          _buildRequirement('Minimal 8 karakter', hasMin),
+                          _buildRequirement('Mengandung huruf besar (A-Z)', hasUpper),
+                          _buildRequirement('Mengandung huruf kecil (a-z)', hasLower),
+                          _buildRequirement('Mengandung angka (0-9)', hasDigit),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 12),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -162,6 +201,30 @@ class RegisterView extends GetView<RegisterController> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRequirement(String label, bool isMet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            size: 15,
+            color: isMet ? brandGreen : brandRed,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isMet ? brandGreen : brandRed,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

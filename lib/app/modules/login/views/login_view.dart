@@ -97,7 +97,7 @@ class LoginView extends GetView<LoginController> {
                     controller: controller.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      hintText: 'Masukkan email / nomor hp',
+                      hintText: 'Masukkan email',
                       hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                       prefixIcon: const Icon(Icons.person_outline, color: Colors.black54),
                       enabledBorder: const UnderlineInputBorder(

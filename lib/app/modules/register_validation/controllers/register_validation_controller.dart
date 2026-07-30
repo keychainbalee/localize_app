@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart'; // Import Reverse Geocoding
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/providers/api_provider.dart';
@@ -60,79 +58,22 @@ class RegisterValidationController extends GetxController {
   Future<void> getCurrentLocation() async {
     try {
       isGettingLocation.value = true;
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        Get.snackbar('GPS Nonaktif', 'Aktifkan layanan GPS pada perangkat Anda');
-        return;
-      }
+      final result = await Get.toNamed(Routes.MAP_PICKER);
+      if (result != null && result is Map) {
+        latitude.value = result['latitude'] ?? 0.0;
+        longitude.value = result['longitude'] ?? 0.0;
+        locationName.value = result['address'] ?? '';
+        addressController.text = locationName.value;
 
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          Get.snackbar('Izin Ditolak', 'Aplikasi memerlukan izin akses lokasi GPS');
-          return;
-        }
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      latitude.value = position.latitude;
-      longitude.value = position.longitude;
-
-      // =======================================================================
-      // TRANSLASI KOORDINAT (LAT, LNG) -> NAMA JALAN & LOKASI
-      // =======================================================================
-      try {
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
+        Get.snackbar(
+          'Lokasi Terpilih',
+          'Alamat terpilih: ${addressController.text}',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
         );
-
-        if (placemarks.isNotEmpty) {
-          Placemark place = placemarks.first;
-
-          String street = place.street ?? '';
-          String subLocality = place.subLocality ?? ''; // Kelurahan / Desa
-          String locality = place.locality ?? '';       // Kecamatan / Kota
-          String city = place.subAdministrativeArea ?? ''; // Kota / Kabupaten
-
-          // Susun format alamat yang rapi
-          List<String> addressParts = [
-            if (street.isNotEmpty) street,
-            if (subLocality.isNotEmpty) subLocality,
-            if (locality.isNotEmpty) locality,
-            if (city.isNotEmpty && city != locality) city,
-          ];
-
-          String formattedAddress = addressParts.join(', ');
-
-          locationName.value = formattedAddress.isNotEmpty
-              ? formattedAddress
-              : 'Jl. Terdeteksi (${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)})';
-
-          // Otomatis isi kolom Textfield Alamat
-          addressController.text = locationName.value;
-        }
-      } catch (geoError) {
-        // Fallback jika layanan geocoding tidak merespons (misal internet offline)
-        locationName.value =
-            'Terkunci: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
-        addressController.text =
-            'Koordinat Terkunci (${position.latitude}, ${position.longitude})';
       }
-
-      Get.snackbar(
-        'GPS & Lokasi Berhasil',
-        'Alamat terdeteksi: ${addressController.text}',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
     } catch (e) {
-      Get.snackbar('Error GPS', 'Gagal membaca koordinat lokasi: $e');
+      Get.snackbar('Error', 'Gagal membuka penunjuk peta: $e');
     } finally {
       isGettingLocation.value = false;
     }
@@ -162,6 +103,9 @@ class RegisterValidationController extends GetxController {
         password: password,
         role: 'customer',
         imagePath: imagePath.value.isNotEmpty ? imagePath.value : null,
+        addressText: addressController.text.isNotEmpty ? addressController.text : null,
+        latitude: latitude.value != 0.0 ? latitude.value : null,
+        longitude: longitude.value != 0.0 ? longitude.value : null,
       );
 
       if (response['success'] == true) {

@@ -9,6 +9,13 @@ abstract class Routes {
   static const ADMIN_HOME = _Paths.ADMIN_HOME;
   static const CHECKOUT = _Paths.CHECKOUT;
   static const REGISTER_VALIDATION = _Paths.REGISTER_VALIDATION;
+  static const CART = _Paths.CART;
+  static const SEARCH = _Paths.SEARCH;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
+  static const PESANAN = _Paths.PESANAN;
+  static const PROFILE = _Paths.PROFILE;
+  static const MAP_PICKER = _Paths.MAP_PICKER;
+  static const ORDER_DETAIL = _Paths.ORDER_DETAIL;
 }
 
 abstract class _Paths {
@@ -19,4 +26,11 @@ abstract class _Paths {
   static const ADMIN_HOME = '/admin-home';
   static const CHECKOUT = '/checkout';
   static const REGISTER_VALIDATION = '/register-validation';
+  static const CART = '/cart';
+  static const SEARCH = '/search';
+  static const EDIT_PROFILE = '/edit-profile';
+  static const PESANAN = '/pesanan';
+  static const PROFILE = '/profile';
+  static const MAP_PICKER = '/map-picker';
+  static const ORDER_DETAIL = '/order-detail';
 }

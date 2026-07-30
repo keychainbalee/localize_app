@@ -8,6 +8,7 @@ class RegisterController extends GetxController {
   final passwordController = TextEditingController();
 
   var isObscure = true.obs;
+  var password = ''.obs;
 
   void toggleObscure() => isObscure.value = !isObscure.value;
 
@@ -26,8 +27,22 @@ class RegisterController extends GetxController {
       return;
     }
 
-    if (password.length < 6) {
-      Get.snackbar('Validasi Gagal', 'Password minimal harus 6 karakter');
+    if (password.length < 8) {
+      Get.snackbar('Validasi Gagal', 'Password minimal harus 8 karakter');
+      return;
+    }
+
+    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    final hasDigits = password.contains(RegExp(r'[0-9]'));
+    final hasLowercase = password.contains(RegExp(r'[a-z]'));
+
+    if (!hasUppercase || !hasDigits || !hasLowercase) {
+      Get.snackbar(
+        'Password Lemah',
+        'Password harus mengandung kombinasi huruf besar, huruf kecil, dan angka.',
+        backgroundColor: Colors.amber,
+        colorText: Colors.black87,
+      );
       return;
     }
 

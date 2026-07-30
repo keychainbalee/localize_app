@@ -42,18 +42,81 @@ class ApiProvider {
     required String phoneNumber,
     required String password,
     String role = 'customer',
+    String? imagePath,
+    List<int>? imageBytes,
   }) async {
-    final response = await http.post(
-      Uri.parse(ApiEndpoints.register),
-      headers: await _getHeaders(withToken: false),
-      body: jsonEncode({
-        'fullName': fullName,
-        'email': email,
-        'phoneNumber': phoneNumber,
-        'password': password,
-        'role': role,
-      }),
-    );
+    if ((imagePath != null && imagePath.isNotEmpty) || (imageBytes != null && imageBytes.isNotEmpty)) {
+      final request = http.MultipartRequest('POST', Uri.parse(ApiEndpoints.register));
+      request.fields['fullName'] = fullName;
+      request.fields['email'] = email;
+      request.fields['phoneNumber'] = phoneNumber;
+      request.fields['password'] = password;
+      request.fields['role'] = role;
+
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'imageFile',
+          imageBytes,
+          filename: 'avatar.jpg',
+        ));
+      } else if (imagePath != null && imagePath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'imageFile',
+          imagePath,
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } else {
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.register),
+        headers: await _getHeaders(withToken: false),
+        body: jsonEncode({
+          'fullName': fullName,
+          'email': email,
+          'phoneNumber': phoneNumber,
+          'password': password,
+          'role': role,
+        }),
+      );
+      return jsonDecode(response.body);
+    }
+  }
+
+  // PUT /api/auth/users/:id
+  Future<Map<String, dynamic>> updateUser({
+    required int id,
+    String? fullName,
+    String? phoneNumber,
+    String? role,
+    String? imagePath,
+    List<int>? imageBytes,
+  }) async {
+    final request = http.MultipartRequest('PUT', Uri.parse('${ApiEndpoints.baseUrl}/auth/users/$id'));
+    final headers = await _getHeaders(withToken: true);
+    request.headers.addAll(headers);
+
+    if (fullName != null) request.fields['fullName'] = fullName;
+    if (phoneNumber != null) request.fields['phoneNumber'] = phoneNumber;
+    if (role != null) request.fields['role'] = role;
+
+    if (imageBytes != null && imageBytes.isNotEmpty) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'imageFile',
+        imageBytes,
+        filename: 'avatar.jpg',
+      ));
+    } else if (imagePath != null && imagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'imageFile',
+        imagePath,
+      ));
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
     return jsonDecode(response.body);
   }
 
@@ -81,6 +144,15 @@ class ApiProvider {
     final response = await http.get(
       Uri.parse(ApiEndpoints.productDetail(id)),
       headers: await _getHeaders(withToken: false),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // GET /api/auth/users/:id
+  Future<Map<String, dynamic>> getUserById(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiEndpoints.baseUrl}/auth/users/$id'),
+      headers: await _getHeaders(withToken: true),
     );
     return jsonDecode(response.body);
   }

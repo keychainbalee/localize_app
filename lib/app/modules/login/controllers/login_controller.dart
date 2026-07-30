@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:localize/app/data/providers/api_provider.dart';
-import 'package:localize/app/data/services/storage_service.dart';
-import 'package:localize/app/routes/app_pages.dart';
+import '../../../data/providers/api_provider.dart';
+import '../../../data/services/storage_service.dart';
+import '../../../routes/app_pages.dart';
 
 class LoginController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
 
-  // Controller untuk Text Field Form
+  // Text Editing Controller untuk Form Login
   final emailController = TextEditingController(text: 'budi@mail.com');
   final passwordController = TextEditingController(text: 'password123');
 
@@ -16,11 +16,14 @@ class LoginController extends GetxController {
   var isObscure = true.obs;
 
   // Toggle Tampilkan / Sembunyikan Password
-  void toggleObscure() {
-    isObscure.value = !isObscure.value;
+  void toggleObscure() => isObscure.value = !isObscure.value;
+
+  // Pindah ke Halaman Registrasi
+  void goToRegister() {
+    Get.toNamed(Routes.REGISTER);
   }
 
-  // Pemanggilan Endpoint Login
+  // Fungsi Eksekusi Login
   Future<void> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -41,20 +44,27 @@ class LoginController extends GetxController {
       final response = await _apiProvider.login(email, password);
 
       if (response['success'] == true) {
-        // Simpan JWT Token ke local storage (Data Persistence)
         final String token = response['token'] ?? '';
+        final String role = response['user']?['role'] ?? 'customer';
+
+        // Simpan JWT Token & Role ke Storage Lokal (Persistensi Data)
         await StorageService.saveToken(token);
+        await StorageService.saveRole(role);
 
         Get.snackbar(
-          'Berhasil',
-          response['message'] ?? 'Selamat datang kembali!',
+          'Berhasil Login',
+          'Selamat datang! Login sebagai ${role.toUpperCase()}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
 
-        // Pindah ke Halaman Home dan hapus tumpukan Route Login
-        Get.offAllNamed(Routes.HOME);
+        // Routing Kondisional Berdasarkan Role User
+        if (role == 'admin') {
+          Get.offAllNamed(Routes.ADMIN_HOME);
+        } else {
+          Get.offAllNamed(Routes.HOME);
+        }
       } else {
         Get.snackbar(
           'Gagal Login',
@@ -66,8 +76,8 @@ class LoginController extends GetxController {
       }
     } catch (e) {
       Get.snackbar(
-        'Error',
-        'Gagal terhubung ke server: $e',
+        'Error Server',
+        'Gagal terhubung ke API: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,

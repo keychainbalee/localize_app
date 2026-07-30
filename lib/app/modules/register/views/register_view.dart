@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/login_controller.dart';
+import '../controllers/register_controller.dart';
+import '../../../routes/app_pages.dart';
 
-class LoginView extends GetView<LoginController> {
-  const LoginView({super.key});
+class RegisterView extends GetView<RegisterController> {
+  const RegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color brandYellow = Color(0xFFFFB800); // brandYellow tone
+    const Color brandYellow = Color(0xFFFFB800);
     const Color darkText = Color(0xFF333333);
 
     return Scaffold(
@@ -15,7 +16,7 @@ class LoginView extends GetView<LoginController> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Lengkung Kuning dengan Nama Toko LOCALIZE & Logo Badge
+            // Header Lengkung dengan Nama Toko LOCALIZE & Tombol Kembali
             Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.bottomCenter,
@@ -45,7 +46,7 @@ class LoginView extends GetView<LoginController> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Store Sepatu Lokal',
+                                'Daftar dan cari sepatumu sekarang',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.black87,
@@ -59,7 +60,6 @@ class LoginView extends GetView<LoginController> {
                     ),
                   ),
                 ),
-                // Badge Icon Lingkaran Putih Menempel di Atas Lengkungan
                 Positioned(
                   bottom: -35,
                   child: Container(
@@ -76,124 +76,87 @@ class LoginView extends GetView<LoginController> {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.directions_run_rounded,
-                      size: 48,
-                      color: brandYellow,
-                    ),
+                    child: const Icon(Icons.person_add_alt_1_rounded, size: 44, color: brandYellow),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 60),
 
-            // Form Input Field
+            // Form Inputs
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 36.0),
               child: Column(
                 children: [
-                  // Field Email / Username
+                  TextField(
+                    controller: controller.fullNameController,
+                    decoration: InputDecoration(
+                      hintText: 'Nama Lengkap',
+                      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                      prefixIcon: const Icon(Icons.person_outline, color: Colors.black54),
+                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
+                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: brandYellow, width: 2)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   TextField(
                     controller: controller.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      hintText: 'Masukkan email / nomor hp',
+                      hintText: 'Email',
                       hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                      prefixIcon: const Icon(Icons.person_outline, color: Colors.black54),
-                      enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black12),
-                      ),
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: brandYellow, width: 2),
-                      ),
+                      prefixIcon: const Icon(Icons.email_outlined, color: Colors.black54),
+                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
+                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: brandYellow, width: 2)),
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Field Password
                   Obx(() => TextField(
                         controller: controller.passwordController,
                         obscureText: controller.isObscure.value,
                         decoration: InputDecoration(
-                          hintText: 'Masukkan kata sandi',
+                          hintText: 'Password (minimal 6 karakter)',
                           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                           prefixIcon: const Icon(Icons.lock_outline, color: Colors.black54),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              controller.isObscure.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
+                              controller.isObscure.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                               color: Colors.grey,
                             ),
                             onPressed: controller.toggleObscure,
                           ),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black12),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: brandYellow, width: 2),
-                          ),
+                          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
+                          focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: brandYellow, width: 2)),
                         ),
                       )),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Link Teks Registrasi (Satu Baris Tanpa Lupa Password)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Belum punya akun? ',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                      ),
+                      Text('Sudah punya akun? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                       GestureDetector(
-                        onTap: () => controller.goToRegister(),
-                        child: const Text(
-                          'Daftar Sekarang',
-                          style: TextStyle(
-                            color: brandYellow,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onTap: () => Get.offNamed(Routes.LOGIN),
+                        child: const Text('Masuk di sini', style: TextStyle(color: brandYellow, fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 36),
 
-                  // Action Button Kuning Oval
-                  Obx(() => SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: brandYellow,
-                            foregroundColor: darkText,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          onPressed: controller.isLoading.value
-                              ? null
-                              : () => controller.login(),
-                          child: controller.isLoading.value
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    color: darkText,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Masuk',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        ),
-                      )),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brandYellow,
+                        foregroundColor: darkText,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                      ),
+                      onPressed: () => controller.validateAndNext(),
+                      child: const Text('Lanjutkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -209,12 +172,7 @@ class HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     var path = Path();
     path.lineTo(0, size.height - 40);
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 10,
-      size.width,
-      size.height - 40,
-    );
+    path.quadraticBezierTo(size.width / 2, size.height + 10, size.width, size.height - 40);
     path.lineTo(size.width, 0);
     path.close();
     return path;

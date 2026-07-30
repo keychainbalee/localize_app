@@ -2,22 +2,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
   static const String _tokenKey = 'jwt_token';
+  static const String _roleKey = 'user_role';
 
-  // Menyimpan JWT Token saat Login / Registrasi
+  // Simpan & Ambil Token JWT
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  // Mengambil JWT Token untuk Request Berasumsi Autentikasi
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
 
-  // Menghapus JWT Token (Logout)
-  static Future<void> clearToken() async {
+  // Simpan & Ambil Role User ('customer' / 'admin')
+  static Future<void> saveRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_roleKey, role);
+  }
+
+  static Future<String?> getRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_roleKey);
+  }
+
+  // Clear Session (Logout)
+  static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_roleKey);
   }
 }

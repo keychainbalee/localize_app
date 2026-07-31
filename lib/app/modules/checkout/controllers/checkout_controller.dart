@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../data/services/storage_service.dart';
 import '../../../routes/app_pages.dart';
+import '../../../utils/auth_guard.dart';
 import '../../home/controllers/home_controller.dart';
 
 class CheckoutController extends GetxController {
@@ -222,6 +223,9 @@ class CheckoutController extends GetxController {
   }
 
   Future<void> submitOrder() async {
+    final loggedIn = await AuthGuard.checkLoggedIn(actionTitle: 'membuat pesanan');
+    if (!loggedIn) return;
+
     final address = addressController.text.trim();
     if (address.isEmpty) {
       Get.snackbar('Peringatan', 'Alamat pengiriman wajib diisi');
@@ -238,7 +242,7 @@ class CheckoutController extends GetxController {
       
       final token = await StorageService.getToken();
       if (token == null || token.isEmpty) {
-        Get.offAllNamed(Routes.LOGIN);
+        Get.toNamed(Routes.LOGIN);
         return;
       }
 

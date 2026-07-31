@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../data/providers/api_provider.dart';
+import '../../../routes/app_pages.dart';
+import '../../../utils/auth_guard.dart';
 
 class HomeController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
@@ -27,9 +29,9 @@ class HomeController extends GetxController {
   // Banner slider states
   var activeSlideIndex = 0.obs;
   var bannerImages = [
-    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000',
-    'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000',
-    'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=1000',
+    'assets/images/baner/baner1.png',
+    'assets/images/baner/baner2.png',
+    'assets/images/baner/baner3.png',
   ].obs;
 
   late PageController pageController;
@@ -68,8 +70,23 @@ class HomeController extends GetxController {
     super.onClose();
   }
 
-  void changeTab(int index) {
+  // Pindah tab dengan periksa AuthGuard untuk Pesanan (tab 1) & Profil (tab 2)
+  Future<void> changeTab(int index) async {
+    if (index == 1) {
+      final loggedIn = await AuthGuard.checkLoggedIn(actionTitle: 'melihat daftar pesanan Anda');
+      if (!loggedIn) return;
+    } else if (index == 2) {
+      final loggedIn = await AuthGuard.checkLoggedIn(actionTitle: 'melihat profil akun Anda');
+      if (!loggedIn) return;
+    }
     selectedTabIndex.value = index;
+  }
+
+  // Buka Keranjang Belanja dengan AuthGuard
+  Future<void> openCart() async {
+    final loggedIn = await AuthGuard.checkLoggedIn(actionTitle: 'melihat keranjang belanja');
+    if (!loggedIn) return;
+    Get.toNamed(Routes.CART);
   }
 
   Future<void> loadDashboardData() async {
@@ -82,10 +99,10 @@ class HomeController extends GetxController {
         storeInfo.value = storeRes['data'] ?? {};
       }
 
-      // Load user registered address
+      // Load user registered address (opsional jika guest)
       await loadUserAddress();
 
-      // Load product catalog
+      // Load product catalog (bisa diakses siapa saja termasuk guest!)
       final productsRes = await _apiProvider.getProducts();
       final List<dynamic> rawList = productsRes;
       allProducts.value = rawList;
@@ -128,11 +145,11 @@ class HomeController extends GetxController {
         
         calculateRuleShippingFee();
       } else {
-        userAddress.value = 'Belum mendaftarkan alamat';
+        userAddress.value = 'Mode Tamu / Belum Login';
         shippingFee.value = 20000.0; // Default
       }
     } catch (e) {
-      userAddress.value = 'Gagal memuat alamat';
+      userAddress.value = 'Mode Tamu / Belum Login';
       shippingFee.value = 20000.0;
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/providers/api_provider.dart';
 import '../../../routes/app_pages.dart';
+import '../../../utils/auth_guard.dart';
 
 class CartController extends GetxController {
   final ApiProvider _apiProvider = ApiProvider();
@@ -66,7 +67,10 @@ class CartController extends GetxController {
     }
   }
 
-  void proceedToCheckout() {
+  Future<void> proceedToCheckout() async {
+    final loggedIn = await AuthGuard.checkLoggedIn(actionTitle: 'melakukan checkout pesanan');
+    if (!loggedIn) return;
+
     if (cartItems.isEmpty) {
       Get.snackbar('Peringatan', 'Keranjang Anda kosong');
       return;

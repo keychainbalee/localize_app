@@ -48,7 +48,7 @@ class HomeView extends GetView<HomeController> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_bag_outlined),
-            onPressed: () => Get.toNamed(Routes.CART),
+            onPressed: () => controller.openCart(),
           ),
         ],
       ),
@@ -217,17 +217,30 @@ class HomeView extends GetView<HomeController> {
               controller.activeSlideIndex.value = index;
             },
             itemBuilder: (context, index) {
+              final imgPath = controller.bannerImages[index];
+              final isAsset = imgPath.startsWith('assets/');
+
               return ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  controller.bannerImages[index],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                ),
+                child: isAsset
+                    ? Image.asset(
+                        imgPath,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.broken_image, color: Colors.grey),
+                        ),
+                      )
+                    : Image.network(
+                        imgPath,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.broken_image, color: Colors.grey),
+                        ),
+                      ),
               );
             },
           ),

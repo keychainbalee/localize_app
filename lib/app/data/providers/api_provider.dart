@@ -375,7 +375,6 @@ class ApiProvider {
       body: jsonEncode({
         'label': label ?? 'Rumah',
         'addressText': addressText,
-        'addressNotes': addressNotes ?? '',
         'latitude': latitude,
         'longitude': longitude,
         'isPrimary': isPrimary ?? 1,
@@ -383,4 +382,131 @@ class ApiProvider {
     );
     return jsonDecode(response.body);
   }
-}
+
+  // ===========================================================================
+  // 6. ADMIN API (PRODUK & PESANAN)
+  // ===========================================================================
+
+  // GET /api/orders/admin
+  Future<List<dynamic>> getAdminOrders() async {
+    final response = await http.get(
+      Uri.parse(ApiEndpoints.adminOrders),
+      headers: await _getHeaders(withToken: true),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Gagal memuat daftar pesanan admin');
+    }
+  }
+
+  // PUT /api/orders/:id/status (Admin ubah status pesanan: dibayar, dikirim, selesai, batal)
+  Future<Map<String, dynamic>> updateOrderStatus(int orderId, String status) async {
+    final response = await http.put(
+      Uri.parse('${ApiEndpoints.baseUrl}/orders/$orderId/status'),
+      headers: await _getHeaders(withToken: true),
+      body: jsonEncode({'status': status}),
+    );
+    return jsonDecode(response.body);
+  }
+
+  // POST /api/products (Tambah Produk dengan Opsional Gambar File)
+  Future<Map<String, dynamic>> createProduct({
+    required String name,
+    required String brand,
+    required String description,
+    required double price,
+    required Map<String, dynamic> sizeStock,
+    String? imageUrl,
+    String? imagePath,
+  }) async {
+    if (imagePath != null && imagePath.isNotEmpty) {
+      final request = http.MultipartRequest('POST', Uri.parse(ApiEndpoints.products));
+      final headers = await _getHeaders(withToken: true);
+      request.headers.addAll(headers);
+
+      request.fields['name'] = name;
+      request.fields['brand'] = brand;
+      request.fields['description'] = description;
+      request.fields['price'] = price.toString();
+      request.fields['sizeStock'] = jsonEncode(sizeStock);
+      if (imageUrl != null) request.fields['imageUrl'] = imageUrl;
+
+      request.files.add(await http.MultipartFile.fromPath('imageFile', imagePath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } else {
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.products),
+        headers: await _getHeaders(withToken: true),
+        body: jsonEncode({
+          'name': name,
+          'brand': brand,
+          'description': description,
+          'price': price,
+          'sizeStock': sizeStock,
+          'imageUrl': imageUrl ?? '',
+        }),
+      );
+      return jsonDecode(response.body);
+    }
+  }
+
+  // PUT /api/products/:id (Update Produk)
+  Future<Map<String, dynamic>> updateProduct({
+    required int id,
+    required String name,
+    required String brand,
+    required String description,
+    required double price,
+    required Map<String, dynamic> sizeStock,
+    String? imageUrl,
+    String? imagePath,
+  }) async {
+    if (imagePath != null && imagePath.isNotEmpty) {
+      final request = http.MultipartRequest('PUT', Uri.parse('${ApiEndpoints.products}/$id'));
+      final headers = await _getHeaders(withToken: true);
+      request.headers.addAll(headers);
+
+      request.fields['name'] = name;
+      request.fields['brand'] = brand;
+      request.fields['description'] = description;
+      request.fields['price'] = price.toString();
+      request.fields['sizeStock'] = jsonEncode(sizeStock);
+      if (imageUrl != null) request.fields['imageUrl'] = imageUrl;
+
+      request.files.add(await http.MultipartFile.fromPath('imageFile', imagePath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } else {
+      final response = await http.put(
+        Uri.parse('${ApiEndpoints.products}/$id'),
+        headers: await _getHeaders(withToken: true),
+        body: jsonEncode({
+          'name': name,
+          'brand': brand,
+          'description': description,
+          'price': price,
+          'sizeStock': sizeStock,
+          'imageUrl': imageUrl ?? '',
+        }),
+      );
+      return jsonDecode(response.body);
+    }
+  }
+
+  // DELETE /api/products/:id (Hapus Produk)
+  Future<Map<String, dynamic>> deleteProduct(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiEndpoints.products}/$id'),
+      headers: await _getHeaders(withToken: true),
+    );
+    return jsonDecode(response.body);
+  }
+}

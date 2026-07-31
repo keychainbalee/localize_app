@@ -18,8 +18,14 @@ import '../modules/order_detail/bindings/order_detail_binding.dart';
 import '../modules/order_detail/views/order_detail_view.dart';
 import '../modules/pesanan/bindings/pesanan_binding.dart';
 import '../modules/pesanan/views/pesanan_view.dart';
+import '../modules/pesanan_admin/bindings/pesanan_admin_binding.dart';
+import '../modules/pesanan_admin/views/pesanan_admin_view.dart';
+import '../modules/product_admin/bindings/product_admin_binding.dart';
+import '../modules/product_admin/views/product_admin_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
+import '../modules/profile_admin/bindings/profile_admin_binding.dart';
+import '../modules/profile_admin/views/profile_admin_view.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_view.dart';
 import '../modules/register_validation/bindings/register_validation_binding.dart';
@@ -99,6 +105,21 @@ class AppPages {
       name: _Paths.ORDER_DETAIL,
       page: () => const OrderDetailView(),
       binding: OrderDetailBinding(),
+    ),
+    GetPage(
+      name: _Paths.PRODUCT_ADMIN,
+      page: () => const ProductAdminView(),
+      binding: ProductAdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.PESANAN_ADMIN,
+      page: () => const PesananAdminView(),
+      binding: PesananAdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROFILE_ADMIN,
+      page: () => const ProfileAdminView(),
+      binding: ProfileAdminBinding(),
     ),
   ];
 }

@@ -46,10 +46,14 @@ class LoginController extends GetxController {
       if (response['success'] == true) {
         final String token = response['token'] ?? '';
         final String role = response['user']?['role'] ?? 'customer';
+        final int userId = int.tryParse(response['user']?['id']?.toString() ?? '0') ?? 0;
 
-        // Simpan JWT Token & Role ke Storage Lokal (Persistensi Data)
+        // Simpan JWT Token, Role & User ID ke Storage Lokal
         await StorageService.saveToken(token);
         await StorageService.saveRole(role);
+        if (userId != 0) {
+          await StorageService.saveUserId(userId);
+        }
 
         Get.snackbar(
           'Berhasil Login',

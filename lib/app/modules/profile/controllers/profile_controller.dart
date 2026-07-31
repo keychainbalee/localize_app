@@ -27,39 +27,58 @@ class ProfileController extends GetxController {
   Future<void> loadUserInfo() async {
     try {
       isLoading.value = true;
+      final storedId = await StorageService.getUserIdAsync();
       final token = await StorageService.getToken();
-      if (token == null || token.isEmpty) return;
 
-      final parts = token.split('.');
-      if (parts.length != 3) return;
+      int targetUserId = storedId ?? 0;
 
-      final payload = parts[1];
-      final decoded = utf8.decode(base64Url.decode(base64Url.normalize(payload)));
-      final userMap = json.decode(decoded);
-      
-      final idVal = userMap['id'];
-      if (idVal != null) {
-        userId.value = idVal;
+      if (token != null && token.isNotEmpty) {
+        try {
+          final parts = token.split('.');
+          if (parts.length == 3) {
+            final payload = parts[1];
+            final decoded = utf8.decode(base64Url.decode(base64Url.normalize(payload)));
+            final userMap = json.decode(decoded);
+            if (targetUserId == 0) {
+              targetUserId = userMap['id'] ?? 0;
+            }
+            if (userEmail.value == 'customer@mail.com' || userEmail.value.isEmpty) {
+              userEmail.value = userMap['email'] ?? 'customer@mail.com';
+            }
+            if (userName.value == 'Pelanggan Localize' || userName.value.isEmpty) {
+              userName.value = userMap['fullName'] ?? userMap['full_name'] ?? 'Pelanggan Localize';
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (targetUserId != 0) {
+        userId.value = targetUserId;
 
         // 1. Fetch fresh user info
-        final res = await _apiProvider.getUserById(idVal);
-        if (res['success'] == true && res['data'] != null) {
-          final uData = res['data'];
-          userName.value = uData['fullName'] ?? 'Pelanggan Localize';
-          userEmail.value = uData['email'] ?? 'customer@mail.com';
-          userPhone.value = uData['phoneNumber'] ?? '';
-          userAvatarUrl.value = uData['imageUrl'] ?? '';
-        }
+        try {
+          final res = await _apiProvider.getUserById(targetUserId);
+          if (res['success'] == true && res['data'] != null) {
+            final uData = res['data'];
+            userName.value = uData['fullName'] ?? uData['full_name'] ?? 'Pelanggan Localize';
+            userEmail.value = uData['email'] ?? 'customer@mail.com';
+            final rawPhone = uData['phoneNumber'] ?? uData['phone_number'] ?? uData['phone'] ?? '';
+            userPhone.value = rawPhone.toString();
+            userAvatarUrl.value = uData['imageUrl'] ?? uData['avatar_url'] ?? '';
+          }
+        } catch (_) {}
 
         // 2. Fetch user primary address
-        final locations = await _apiProvider.getMyLocations();
-        if (locations.isNotEmpty) {
-          final primary = locations.firstWhere(
-            (loc) => loc['is_primary'] == 1 || loc['is_primary'] == true,
-            orElse: () => locations.first,
-          );
-          userAddress.value = primary['address_text'] ?? 'Belum Menambahkan Alamat';
-        }
+        try {
+          final locations = await _apiProvider.getMyLocations();
+          if (locations.isNotEmpty) {
+            final primary = locations.firstWhere(
+              (loc) => loc['is_primary'] == 1 || loc['is_primary'] == true || loc['isPrimary'] == 1,
+              orElse: () => locations.first,
+            );
+            userAddress.value = primary['address_text'] ?? primary['addressText'] ?? 'Belum Menambahkan Alamat';
+          }
+        } catch (_) {}
       }
     } catch (e) {
       print('Error loading user info: $e');
@@ -106,15 +125,41 @@ class ProfileController extends GetxController {
     }
   }
 
+  // Validasi & Konfirmasi Logout Customer
   Future<void> logout() async {
-    await StorageService.clearSession();
-    Get.snackbar(
-      'Keluar Akun',
-      'Anda berhasil keluar dari akun.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.black87,
-      colorText: Colors.white,
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Keluar Akun', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun Anda?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Get.back(result: true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
     );
-    Get.offAllNamed(Routes.LOGIN);
+
+    if (confirm == true) {
+      await StorageService.clearSession();
+      Get.snackbar(
+        'Keluar Akun',
+        'Anda telah keluar dari akun.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+      Get.offAllNamed(Routes.LOGIN);
+    }
   }
 }

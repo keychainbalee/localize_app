@@ -16,6 +16,9 @@ abstract class Routes {
   static const PROFILE = _Paths.PROFILE;
   static const MAP_PICKER = _Paths.MAP_PICKER;
   static const ORDER_DETAIL = _Paths.ORDER_DETAIL;
+  static const PRODUCT_ADMIN = _Paths.PRODUCT_ADMIN;
+  static const PESANAN_ADMIN = _Paths.PESANAN_ADMIN;
+  static const PROFILE_ADMIN = _Paths.PROFILE_ADMIN;
 }
 
 abstract class _Paths {
@@ -33,4 +36,7 @@ abstract class _Paths {
   static const PROFILE = '/profile';
   static const MAP_PICKER = '/map-picker';
   static const ORDER_DETAIL = '/order-detail';
+  static const PRODUCT_ADMIN = '/product-admin';
+  static const PESANAN_ADMIN = '/pesanan-admin';
+  static const PROFILE_ADMIN = '/profile-admin';
 }

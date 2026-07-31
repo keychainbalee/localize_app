@@ -26,10 +26,29 @@ class StorageService {
     return prefs.getString(_roleKey);
   }
 
+  static const String _userIdKey = 'user_id';
+
+  // Simpan & Ambil User ID
+  static Future<void> saveUserId(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_userIdKey, id);
+  }
+
+  static int? getUserId() {
+    // Note: will be read async or sync if cached
+    return null;
+  }
+
+  static Future<int?> getUserIdAsync() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_userIdKey);
+  }
+
   // Clear Session (Logout)
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_roleKey);
+    await prefs.remove(_userIdKey);
   }
 }
